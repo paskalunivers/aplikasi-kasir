@@ -2,11 +2,10 @@
 <!-- isinya -->
 
 <?php
-// Data statis untuk contoh
-$totQty = 100; // Total qty yang terjual
-$totDpt = 2000000; // Total pendapatan penjualan
-$totDpt1 = 1500000; // Total pendapatan setelah biaya modal
-$subTotal = 2500000; // Total semua subtotal
+$i1 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT SUM(qty) as totqty FROM laporan"));
+$i2 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT SUM(qty*harga_modal) as totdpt FROM laporan"));
+$i3 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT SUM(subtotal-qty*harga_modal) as totdpt1 FROM laporan"));
+$i4 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT SUM(subtotal) as isub FROM laporan"));
 ?>
 
 <h1 class="h3 mb-2">Data Laporan</h1>
