@@ -128,7 +128,7 @@ $i4 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT SUM(subtotal) as isub FROM l
             </div>
         </div>
         <div class="col-12 text-center mt-5">
-            <h2>* Terima Kasih Telah Berbelanja Di Kelompok 5 *</h2>
+            <h2>* Terima Kasih Telah Berbelanja Di Kelompok 8 *</h2>
         </div>
     </div><!-- end row -->
 </div><!-- end box print -->
