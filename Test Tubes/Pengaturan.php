@@ -1,41 +1,72 @@
 <?php include 'sidebar.php'; ?>
 <!-- isinya -->
 <?php
-// Menghapus semua fungsi yang berkaitan dengan koneksi database
+// Query untuk mendapatkan data user
+$queryuser = mysqli_query($conn, "SELECT * FROM login WHERE userid='$uid'");
+$userData = mysqli_fetch_assoc($queryuser);
 
-if(isset($_POST['SimpanEdit'])){
+// Variabel untuk form
+$username = $userData['username'];
+$toko = $userData['toko'];
+$telepon = $userData['telepon'];
+$alamat = $userData['alamat'];
+$logo = $userData['logo']; // Jika ada gambar/logo
+
+// Proses Update Profil
+if (isset($_POST['SimpanEdit'])) {
     $uname = htmlspecialchars($_POST['username']);
     $ntoko = htmlspecialchars($_POST['nama_toko']);
     $telp = htmlspecialchars($_POST['telepon']);
     $addr = htmlspecialchars($_POST['alamat']);
-    $pass = $_POST['password'];  // Hapus mysqli_real_escape_string dan password_verify
+    $pass = mysqli_real_escape_string($conn, $_POST['password']);
 
-    // Cek hanya nilai password dari form tanpa pengecekan database
-    if($pass == 'password_saya') {  // Misalnya, password harus sama dengan "password_saya"
-        echo '<script>alert("Data berhasil diperbarui!"); history.go(-1);</script>';
+    // Verifikasi password lama
+    if (password_verify($pass, $userData['password'])) {
+        // Update data user
+        $updateProfile = mysqli_query($conn, "UPDATE login SET 
+            username='$uname', 
+            toko='$ntoko', 
+            telepon='$telp', 
+            alamat='$addr' 
+            WHERE userid='$uid'");
+
+        if ($updateProfile) {
+            echo '<script>alert("Profil berhasil diperbarui!");window.location.reload();</script>';
+        } else {
+            echo '<script>alert("Gagal memperbarui profil!");history.go(-1);</script>';
+        }
     } else {
-        echo '<script>alert("Password salah!"); history.go(-1);</script>';
+        echo '<script>alert("Password verifikasi salah!");history.go(-1);</script>';
     }
 }
 
-if(isset($_POST['UpdatePass'])){
-    $pass1 = $_POST['pswd1'];  // Hapus mysqli_real_escape_string dan password_verify
+// Proses Update Password
+if (isset($_POST['UpdatePass'])) {
+    $oldPass = mysqli_real_escape_string($conn, $_POST['pswd1']);
+    $newPass = mysqli_real_escape_string($conn, $_POST['pswd2']);
+    $confirmPass = mysqli_real_escape_string($conn, $_POST['pswd3']);
 
-    if($pass1 == 'password_saya') {  // Misalnya, password harus sama dengan "password_saya"
-        $pass2 = $_POST['pswd2'];
-        $pass3 = $_POST['pswd3'];
+    // Verifikasi password lama
+    if (password_verify($oldPass, $userData['password'])) {
+        // Cek konfirmasi password baru
+        if ($newPass === $confirmPass) {
+            $hashedPass = password_hash($newPass, PASSWORD_DEFAULT);
+            $updatePassword = mysqli_query($conn, "UPDATE login SET password='$hashedPass' WHERE userid='$uid'");
 
-        // Pastikan password baru dan konfirmasi password sama
-        if ($pass2 === $pass3) {
-            echo '<script>alert("Password berhasil diperbarui!"); history.go(-1);</script>';
+            if ($updatePassword) {
+                echo '<script>alert("Password berhasil diperbarui!");window.location.reload();</script>';
+            } else {
+                echo '<script>alert("Gagal memperbarui password!");history.go(-1);</script>';
+            }
         } else {
-            echo '<script>alert("Password konfirmasi tidak cocok!"); history.go(-1);</script>';
+            echo '<script>alert("Password baru dan konfirmasi tidak cocok!");history.go(-1);</script>';
         }
     } else {
-        echo '<script>alert("Password lama salah!"); history.go(-1);</script>';
+        echo '<script>alert("Password lama salah!");history.go(-1);</script>';
     }
 }
 ?>
+
 
 <h1 class="h3 mb-2">Account Settings</h1>
 <!-- Profile widget -->
