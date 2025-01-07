@@ -100,7 +100,7 @@ if(isset($_POST['InputCart']))
   $kodeInfo = $data['kodeTerbesar'];
   $urutan = (int) substr($kodeInfo, 8, 2);
   $urutan++;
-  $huruf = "SE";
+  $huruf = "AD";
   $oi = $huruf . date("jnyGi") . sprintf("%02s", $urutan);
     
     $bikincart = mysqli_query($conn,"INSERT INTO inv (invoice,pembayaran,kembalian,status) values('$oi','','','proses')");

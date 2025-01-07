@@ -1,74 +1,94 @@
+
 <?php include 'sidebar.php'; ?>
 <!-- isinya -->
 <?php
-// Menghapus semua fungsi yang berkaitan dengan koneksi database
-
 if(isset($_POST['SimpanEdit'])){
     $uname = htmlspecialchars($_POST['username']);
     $ntoko = htmlspecialchars($_POST['nama_toko']);
     $telp = htmlspecialchars($_POST['telepon']);
     $addr = htmlspecialchars($_POST['alamat']);
-    $pass = $_POST['password'];  // Hapus mysqli_real_escape_string dan password_verify
+    $pass = mysqli_real_escape_string($conn,$_POST['password']);
 
-    // Cek hanya nilai password dari form tanpa pengecekan database
-    if($pass == 'password_saya') {  // Misalnya, password harus sama dengan "password_saya"
-        echo '<script>alert("Data berhasil diperbarui!"); history.go(-1);</script>';
-    } else {
-        echo '<script>alert("Password salah!"); history.go(-1);</script>';
+    $queryuser = mysqli_query($conn,"SELECT * FROM login WHERE userid='$uid'");
+    $cariuser = mysqli_fetch_assoc($queryuser);
+
+    if( password_verify($pass, $cariuser['password']) ) {
+        if($cariuser){ 
+        $cekDataUpdate =  mysqli_query($conn, "UPDATE login SET username='$uname',
+        toko='$ntoko',telepon='$telp',alamat='$addr'
+         WHERE userid='$uid'") or die(mysqli_connect_error());
+        if($cekDataUpdate){
+            echo '<script>history.go(-1);</script>';
+        } else {
+            echo '<script>alert("Gagal Edit Data");history.go(-1);</script>';
+        }
     }
-}
+    } else {
+        echo '<script>alert("Maaf password salah");history.go(-1);</script>';
+    }
+}; 
 
 if(isset($_POST['UpdatePass'])){
-    $pass1 = $_POST['pswd1'];  // Hapus mysqli_real_escape_string dan password_verify
+    $pass1 = mysqli_real_escape_string($conn,$_POST['pswd1']);
 
-    if($pass1 == 'password_saya') {  // Misalnya, password harus sama dengan "password_saya"
-        $pass2 = $_POST['pswd2'];
-        $pass3 = $_POST['pswd3'];
+    $querypass = mysqli_query($conn,"SELECT * FROM login WHERE userid='$uid'");
+    $caripass = mysqli_fetch_assoc($querypass);
 
-        // Pastikan password baru dan konfirmasi password sama
-        if ($pass2 === $pass3) {
-            echo '<script>alert("Password berhasil diperbarui!"); history.go(-1);</script>';
-        } else {
-            echo '<script>alert("Password konfirmasi tidak cocok!"); history.go(-1);</script>';
+    if( password_verify($pass1, $caripass['password']) ) {
+        if($caripass){ 
+
+            $pass2 = $_POST['pswd2'];
+            $pass3 = password_hash($_POST['pswd3'], PASSWORD_DEFAULT);
+
+            if (password_verify($pass2, $pass3)) {
+                $cekPass =  mysqli_query($conn, "UPDATE login SET password='$pass3'
+                    WHERE userid='$uid'") or die(mysqli_connect_error());
+                    if($cekPass){
+                        echo '<script>alert("Password Berhasil di update");history.go(-1);</script>';
+                    } else {
+                        echo '<script>alert("Gagal update password");history.go(-1);</script>';
+                    } 
+                }else {
+                echo "<script>alert('Password yang Anda Masukan Tidak Sama');history.go(-1)</script>";
+                 }
         }
     } else {
-        echo '<script>alert("Password lama salah!"); history.go(-1);</script>';
+        echo '<script>alert("Maaf password salah");history.go(-1);</script>';
     }
-}
+}; 
 ?>
-
-<h1 class="h3 mb-2">Account Settings</h1>
-<!-- Profile widget -->
-<div class="bg-white shadow rounded overflow-hidden">
-    <div class="px-4 bg-purple" style="border-radius:0.25rem;">
-        <div class="media align-items-end profile-header">
-            <form method="POST" action="proses-logo.php" enctype="multipart/form-data">
-                <div class="profile mr-3">
-                    <label for="logo"><img src="assets/images/<?php echo $logo ?>" alt="logo" class="img-cover-profile rounded mb-2 img-thumbnail"></label>
-                    <input type="file" class="d-none" id="logo" onchange="form.submit()" name="file" />
+    <h1 class="h3 mb-2">Account Settings</h1>
+        <!-- Profile widget -->
+        <div class="bg-white shadow rounded overflow-hidden">
+            <div class="px-4 bg-purple" style="border-radius:0.25rem;">
+                <div class="media align-items-end profile-header">
+                    <form method="POST" action="proses-logo.php" enctype="multipart/form-data">
+                    <div class="profile mr-3">
+                        <label for="logo"><img src="assets/images/<?php echo $logo ?>" alt="logo" class="img-cover-profile rounded mb-2 img-thumbnail"></label>
+                        <input type="file" class="d-none" id="logo" onchange="form.submit()" name="file" />
+                    </div>
+                    </form>
+                    <div class="media-body mb-5 text-white">
+                        <h4 class="mt-0 mb-0"><?php echo $username ?></h4>
+                        <p class="small mb-4">Administrator</p>
+                    </div>
                 </div>
-            </form>
-            <div class="media-body mb-5 text-white">
-                <h4 class="mt-0 mb-0"><?php echo $username ?></h4>
-                <p class="small mb-4">Administrator</p>
             </div>
-        </div>
-    </div>
 
-    <div class="py-4 px-4 mt-5">
-        <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item">
+            <div class="py-4 px-4 mt-5">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
                 <a class="nav-link active" data-toggle="tab" href="#PageProfile" style="letter-spacing: 1px;">
                     <i class="fa fa-user mr-1"></i> Profile</a>
-            </li>
-            <li class="nav-item">
+                </li>
+                <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" href="#PagePassword" style="letter-spacing: 1px;">
-                    <i class="fa fa-lock mr-1"></i> Password</a>
-            </li>
-        </ul>
-        <div class="tab-content py-3">
-            <div id="PageProfile" class="tab-pane active">
-                <form method="post">
+                <i class="fa fa-lock mr-1"></i> Password</a>
+                </li>
+            </ul>
+            <div class="tab-content py-3">
+             <div id="PageProfile" class="tab-pane active">
+            <form method="post">
                     <div class="row">
                         <div class="col-sm-6 col-md-6 mb-2">
                             <label for="namatoko">Nama Toko<span class="text-danger">*</span></label>
@@ -93,77 +113,78 @@ if(isset($_POST['UpdatePass'])){
                                 <button type="button" class="btn btn-primary px-4" onclick="GetVerif()">Update</button>
                             </div>
                             <div style="display:none;width: 100%;" class="cuss" id="Tambah1">
-                                <div class="tengah-tengah px-3">
-                                    <div class="input-group">
-                                        <input name="password" type="password" placeholder="Verifikasi Password" class="form-control mr-2" required>
-                                        <div class="input-group-append">
-                                            <button type="submit" name="SimpanEdit" class="btn btn-primary px-3">Update</button>
-                                        </div>
+                            <div class="tengah-tengah px-3">
+                                <div class="input-group">
+                                    <input name="password" type="password" placeholder="Verifikasi Password" class="form-control mr-2" required>
+                                    <div class="input-group-append">
+                                        <button type="submit" name="SimpanEdit" class="btn btn-primary px-3">Update</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        </div>
+
                     </div>
-                </form>
+            </form>
             </div>
 
-            <div id="PagePassword" class="tab-pane fade"><br>
-                <form method="POST">
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-md-4 col-lg-3 col-form-label">Password Lama<span class="text-danger">*</span></label>
-                        <div class="col-sm-8 col-md-7 col-lg-4">
+                    <div id="PagePassword" class="tab-pane fade"><br>
+                        <form method="POST">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-md-4 col-lg-3 col-form-label">Password Lama<span class="text-danger">*</span></label>
+                            <div class="col-sm-8 col-md-7 col-lg-4">
                             <input type="password" name="pswd1" placeholder="********" class="form-control" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-md-4 col-lg-3 col-form-label">Password Baru<span class="text-danger">*</span></label>
-                        <div class="col-sm-8 col-md-7 col-lg-4">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-md-4 col-lg-3 col-form-label">Password Baru<span class="text-danger">*</span></label>
+                            <div class="col-sm-8 col-md-7 col-lg-4">
                             <input type="password" name="pswd2" placeholder="********" class="form-control" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-sm-4 col-md-4 col-lg-3 col-form-label">Konfirmasi Password<span class="text-danger">*</span></label>
-                        <div class="col-sm-8 col-md-7 col-lg-4">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-md-4 col-lg-3 col-form-label">Konfirmasi Password<span class="text-danger">*</span></label>
+                            <div class="col-sm-8 col-md-7 col-lg-4">
                             <input type="password" name="pswd3" placeholder="********" class="form-control" required>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group row">
-                        <div class="col-sm-12 col-md-11 col-lg-7 text-right">
-                            <button type="submit" name="UpdatePass" class="btn btn-primary px-4">Update</button>
+                        <div class="form-group row">
+                            <div class="col-sm-12 col-md-11 col-lg-7 text-right">
+                                <button type="submit" name="UpdatePass" class="btn btn-primary px-4">Update</button>
+                            </div>
                         </div>
+                        
+                        </form>
                     </div>
-                </form>
-            </div>
 
-        </div><!-- End tab -->
-    </div>
-</div><!-- End profile widget -->
+                </div><!-- End tab -->
+            </div>
+        </div><!-- End profile widget -->
 
 <!-- end isinya -->
 </div><!-- end container-fluid" -->
-</main><!-- end page-content" -->
+  </main><!-- end page-content" -->
 </div><!-- end page-wrapper -->
 
 <!-- Modal Exit -->
 <div class="modal fade" id="Exit" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content border-0">
-            <div class="modal-body text-center">
-                <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                <h3 class="mb-4">Apakah anda yakin ingin keluar ?</h3>
-                <button type="button" class="btn btn-secondary px-4 mr-2" data-dismiss="modal">Batal</button>
-                <a href="logout.php" class="btn btn-primary px-4">Keluar</a>
-            </div>
-        </div>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content border-0">
+      <div class="modal-body text-center">
+      <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+        <h3 class="mb-4">Apakah anda yakin ingin keluar ?</h3>
+        <button type="button" class="btn btn-secondary px-4 mr-2" data-dismiss="modal">Batal</button>
+        <a href="logout.php" class="btn btn-primary px-4">Keluar</a>
     </div>
+  </div>
 </div>
 <!-- end Modal Exit -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script src="assets/js/sidebar.js"></script>
-<script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="assets/js/sidebar.js"></script>
+    <script>
 function GetVerif() {
   var x = document.getElementById("Ada1");
   if (x.style.display === "none") {
