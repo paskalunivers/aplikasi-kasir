@@ -106,17 +106,17 @@ if(isset($_POST['InputCart']))
       // Fungsi untuk membuat invoice unik
       function generateUniqueInvoice($conn) {
           $huruf = "SE";
-          $isUnique = false;
+          $isUnique = false; //Penanda apakah nomor invoice yang dihasilkan sudah unik
           $oi = "";
-  
+          // Menghasilkan nomor invoice baru hingga menebukan nomor yang belum ada pada database
           while (!$isUnique) {
               $randomNumber = mt_rand(10, 99); // Angka acak antara 10-99
               $oi = $huruf . date("jnyGi") . sprintf("%02s", $randomNumber);
   
               // Cek apakah invoice sudah ada di database
-              $checkInvoice = mysqli_query($conn, "SELECT invoice FROM inv WHERE invoice='$oi'");
-              if (mysqli_num_rows($checkInvoice) == 0) {
-                  $isUnique = true; // Nomor invoice tidak ada, unik
+              $checkInvoice = mysqli_query($conn, "SELECT invoice FROM inv WHERE invoice='$oi'"); //Mengecek tabel inv apakah ada invoice dengan nomor $oi.
+              if (mysqli_num_rows($checkInvoice) == 0) { // hasil kosong, nomor belum ada di database
+                  $isUnique = true; // nomor tersebut dianggap unik dan keluar dari loop.
               }
           }
   
