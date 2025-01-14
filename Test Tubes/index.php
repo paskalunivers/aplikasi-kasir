@@ -7,7 +7,7 @@ $jsArray2 = "var harga_modal = new Array();";
  ?>
 <!-- isinya -->
 <form method="post">
-<div class="row">
+<div class="row bg-light">
 
   <div class="col-sm-4 col-md-4 col-lg-3 mb-3">
     <label class="small text-muted mb-1">Kode Produk</label>
@@ -55,70 +55,99 @@ $jsArray2 = "var harga_modal = new Array();";
 <?php 
 if(isset($_POST['InputCart']))
 {
-    $Input1 = htmlspecialchars($_POST['Ckdproduk']);
-    $Input2 = htmlspecialchars($_POST['Cnproduk']);
-    $Input3 = htmlspecialchars($_POST['Charga']);
-    $Input5 = htmlspecialchars($_POST['Csubs']);
-    $hrg_m = htmlspecialchars($_POST['harga_modal']);
-
-    $cekDulu = mysqli_query($conn,"SELECT * FROM cart ");
-    $liat = mysqli_num_rows($cekDulu);
-    $f = mysqli_fetch_array($cekDulu);
-    $inv_c = $f['invoice'];
-    $ii = htmlspecialchars($_POST['Cqty']);
-
-    if($liat>0){
-      $cekbrg = mysqli_query($conn,"SELECT * FROM cart WHERE kode_produk='$Input1' and invoice='$inv_c'");
-      $liatlg = mysqli_num_rows($cekbrg);
-      $brpbanyak = mysqli_fetch_array($cekbrg);
-      $jmlh = $brpbanyak['qty'];
-      $jmlh1 = $brpbanyak['harga'];
-      
-      if($liatlg>0){
-        $i = htmlspecialchars($_POST['Cqty']);
-        $baru = $jmlh + $i;
-        $baru1 = $jmlh1 * $baru;
-
-        $updateaja = mysqli_query($conn,"UPDATE cart SET qty='$baru', subtotal='$baru1' WHERE invoice='$inv_c' and kode_produk='$Input1'");
-        if($updateaja){
-           echo '<script>window.location="index.php"</script>';
-        } else {
-           echo '<script>window.location="index.php"</script>';
-        }
-      } else {
-      $tambahdata = mysqli_query($conn,"INSERT INTO cart (invoice,kode_produk,nama_produk,harga,harga_modal,qty,subtotal)
-       values('$inv_c','$Input1','$Input2','$Input3','$hrg_m','$ii','$Input5')");
-      if ($tambahdata){
-          echo '<script>window.location="index.php"</script>';
-      } else { echo '<script>window.location="index.php"</script>';
-      }
-      };
-} else {
+  $Input1 = htmlspecialchars($_POST['Ckdproduk']);
+  $Input2 = htmlspecialchars($_POST['Cnproduk']);
+  $Input3 = htmlspecialchars($_POST['Charga']);
+  $Input5 = htmlspecialchars($_POST['Csubs']);
+  $hrg_m = htmlspecialchars($_POST['harga_modal']);
   
-  $queryStar = mysqli_query($conn, "SELECT max(invoice) as kodeTerbesar FROM inv");
-  $data = mysqli_fetch_array($queryStar);
-  $kodeInfo = $data['kodeTerbesar'];
-  $urutan = (int) substr($kodeInfo, 8, 2);
-  $urutan++;
-  $huruf = "AD";
-  $oi = $huruf . date("jnyGi") . sprintf("%02s", $urutan);
-    
-    $bikincart = mysqli_query($conn,"INSERT INTO inv (invoice,pembayaran,kembalian,status) values('$oi','','','proses')");
-    if($bikincart){
-      $tambahuser = mysqli_query($conn,"INSERT INTO cart (invoice,kode_produk,nama_produk,harga,harga_modal,qty,subtotal)
-      values('$oi','$Input1','$Input2','$Input3','$hrg_m','$ii','$Input5')");
-      if ($tambahuser){
-        echo '<script>window.location="index.php"</script>';
-      } else { echo '<script>window.location="index.php"</script>';
+  $cekDulu = mysqli_query($conn, "SELECT * FROM cart");
+  $liat = mysqli_num_rows($cekDulu);
+  
+  // Pastikan ada data pada cart sebelum mencoba fetch array
+  if ($liat > 0) {
+      $f = mysqli_fetch_array($cekDulu);
+      $inv_c = $f['invoice'];
+  } else {
+      $inv_c = null; // Jika tidak ada data, set invoice ke null
+  }
+  
+  $ii = htmlspecialchars($_POST['Cqty']);
+  
+  if ($liat > 0 && $inv_c !== null) {
+      $cekbrg = mysqli_query($conn, "SELECT * FROM cart WHERE kode_produk='$Input1' and invoice='$inv_c'");
+      $liatlg = mysqli_num_rows($cekbrg);
+  
+      if ($liatlg > 0) {
+          $brpbanyak = mysqli_fetch_array($cekbrg);
+          $jmlh = $brpbanyak['qty'];
+          $jmlh1 = $brpbanyak['harga'];
+  
+          $i = htmlspecialchars($_POST['Cqty']);
+          $baru = $jmlh + $i;
+          $baru1 = $jmlh1 * $baru;
+  
+          $updateaja = mysqli_query($conn, "UPDATE cart SET qty='$baru', subtotal='$baru1' WHERE invoice='$inv_c' and kode_produk='$Input1'");
+          if ($updateaja) {
+              echo '<script>window.location="index.php"</script>';
+          } else {
+              echo '<script>window.location="index.php"</script>';
+          }
+      } else {
+          $tambahdata = mysqli_query($conn, "INSERT INTO cart (invoice,kode_produk,nama_produk,harga,harga_modal,qty,subtotal)
+          VALUES ('$inv_c','$Input1','$Input2','$Input3','$hrg_m','$ii','$Input5')");
+          if ($tambahdata) {
+              echo '<script>window.location="index.php"</script>';
+          } else {
+              echo '<script>window.location="index.php"</script>';
+          }
       }
-    } else {
-      
-    }
+  } else {
+      // Fungsi untuk membuat invoice unik
+      function generateUniqueInvoice($conn) {
+          $huruf = "SE";
+          $isUnique = false;
+          $oi = "";
+  
+          while (!$isUnique) {
+              $randomNumber = mt_rand(10, 99); // Angka acak antara 10-99
+              $oi = $huruf . date("jnyGi") . sprintf("%02s", $randomNumber);
+  
+              // Cek apakah invoice sudah ada di database
+              $checkInvoice = mysqli_query($conn, "SELECT invoice FROM inv WHERE invoice='$oi'");
+              if (mysqli_num_rows($checkInvoice) == 0) {
+                  $isUnique = true; // Nomor invoice tidak ada, unik
+              }
+          }
+  
+          return $oi;
+      }
+  
+      // Buat invoice baru
+      $oi = generateUniqueInvoice($conn);
+  
+      // Masukkan data ke tabel 'inv'
+      $bikincart = mysqli_query($conn, "INSERT INTO inv (invoice,pembayaran,kembalian,status) values('$oi','','','proses')");
+      if ($bikincart) {
+          // Jika berhasil, masukkan data ke tabel 'cart'
+          $tambahuser = mysqli_query($conn, "INSERT INTO cart (invoice,kode_produk,nama_produk,harga,harga_modal,qty,subtotal)
+          VALUES ('$oi','$Input1','$Input2','$Input3','$hrg_m','$ii','$Input5')");
+          if ($tambahuser) {
+              echo '<script>window.location="index.php"</script>';
+          } else {
+              echo '<script>window.location="index.php"</script>';
+          }
+      } else {
+          echo '<script>window.location="index.php"</script>';
+      }
+  }
+  
+
 }
-};
 $DataInv = mysqli_fetch_array(mysqli_query($conn,"SELECT * FROM cart LIMIT 1"));
 $noinv = $DataInv['invoice'];
 ?>
+
 <div class="bg-purple p-2 text-white" style="border-radius:0.25rem;">
   <h5 class="mb-0">No. Invoice : <?php echo $noinv ?></h5>
 </div>
@@ -286,7 +315,7 @@ if (isset($_POST['import'])) {
           document.getElementById("harga_jual").value = harga_jual[kode_produk].harga_jual;
           document.getElementById("harga_modal").value = harga_modal[kode_produk].harga_modal;
         };
-        //Fungsi ini menghitung subtotal harga produk berdasarkan kuantitas yang diinputkan pengguna.
+        //Fungsi untuk menghitung subtotal harga produk berdasarkan kuantitas yang diinputkan pengguna.
         function InputSub() {
         var harga_jual =  parseInt(document.getElementById('harga_jual').value);
         var jumlah_beli =  parseInt(document.getElementById('Iqty').value);
